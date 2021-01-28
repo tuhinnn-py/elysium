@@ -1509,55 +1509,6 @@ void heapify(int* arr, int S, int i)
 	}
 }
 
-int hungarian(int** matrix, int V)
-{
-	int i, j;
-	int mincol = INT_MAX;
-	
-	int** adj = (int**)malloc(sizeof(int*) * V);
-	for(i = 0; i < V; i++)
-	{
-		adj[i] = (int*)malloc(sizeof(int) * V);
-		for(j = 0; j < V; j++)
-			adj[i][j] = matrix[i][j];
-	}
-	
-	for(i = 0; i < V; i++)
-	{
-		mincol = INT_MAX;
-		for(j = 0; j < V; j++)
-			mincol = min(mincol, adj[i][j]);
-		for(j = 0; j < V; j++)
-			adj[i][j] -= mincol;
-	}
-	
-	for(i = 0; i < V; i++)
-	{
-		mincol = INT_MAX;
-		for(j = 0; j < V; j++)
-			mincol = min(mincol, adj[j][i]);
-		for(j = 0; j < V; j++)
-			adj[j][i] -= mincol;
-	}
-	
-	int* row = (int*)malloc(sizeof(int) * V);
-	memset(row, 0, sizeof(int) * V);
-	int* col = (int*)malloc(sizeof(int) * V);
-	memset(col, 0, sizeof(int) * V);
-	
-	for(i = 0; i < V; i++)
-		for(j = 0; j < V; j++)
-			if(adj[i][j] == 0)
-			{
-				row[i]++;
-				col[j]++;
-			}
-
-	heapify(row, V, 0);
-	heapify(col, V, 0);
-	
-}
-
 int main()
 {
 	int adj[N][N] = {{40, 60, 15},
