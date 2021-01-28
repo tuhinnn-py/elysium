@@ -1484,36 +1484,7 @@ int pushRelabel(int** adj, int V, int start, int target)
 	return excessFlow[target];
 }
 
-void heapify(int* arr, int S, int i)
-{
-	int left = 2 * i + 1;
-	int right = 2 * i + 2;
-	
-	if(left < S)
-		heapify(arr, S, left);
-	if(right < S)
-		heapify(arr, S, right);
-	
-	if(left < S and arr[i] < arr[left])
-	{
-		int t = arr[i];
-		arr[i] = arr[left];
-		arr[left] = t;
-	}
-	
-	if(right < S and arr[i] < arr[right])
-	{
-		int t = arr[i];
-		arr[i] = arr[right];
-		arr[right] = t;
-	}
-}
-
 int main()
 {
-	int adj[N][N] = {{40, 60, 15},
-					 {25, 30, 45},
-					 {55, 30, 25}};
-	int V = 3;
-	printf("%d", hungarian(a2dp(adj, V), V));
+	//
 }
