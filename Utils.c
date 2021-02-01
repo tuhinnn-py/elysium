@@ -76,6 +76,7 @@
 #define INF 9999999
 #define and &&
 #define or ||
+#define none NULL
 
 struct Stack{
 	int arr[N];
@@ -1484,7 +1485,187 @@ int pushRelabel(int** adj, int V, int start, int target)
 	return excessFlow[target];
 }
 
+void augmentMatching(int* matched_A, int* matched_B, int* path, int pathLen, int partition)
+{
+	int i;
+	for(i = 0; i < pathLen; i += 2)
+	{
+		matched_B[path[i] - partition] = path[i + 1];
+		matched_A[path[i + 1]] = path[i];
+	}
+}
+
+bool createLevelGraph(q** lGraph, int** adj, int* matched_A, int* matched_B, int partition, int V, int* qlen)
+{
+	int i, j;
+	bool* visited = (bool*)malloc(sizeof(bool) * (V - partition));
+	memset(visited, false, sizeof(bool) * (V - partition));
+	
+	memset(lGraph, (int)none, sizeof(q*) * V);
+	lGraph[0] = (q*)malloc(sizeof(q));
+	lGraph[0]->front = -1;
+	lGraph[0]->rear = -1;
+	*qlen += 1;
+	
+	for(i = 0; i < partition; i++)
+		if(matched_A[i] == -1)
+			push(lGraph[0], i);
+	
+	i = 0;
+	bool flag = true;
+	
+	while(lGraph[i] != none and flag)
+	{
+		int size = lGraph[i]->rear + 1;
+		bool set = false;
+
+		while(size > 0)
+		{
+			int node = dequeue(lGraph[i]);
+			if(i % 2)
+			{
+				if(!set)
+				{
+					lGraph[i + 1] = (q*)malloc(sizeof(q));
+					lGraph[i + 1]->front = -1;
+					lGraph[i + 1]->rear = -1;
+					*qlen += 1;
+					set = true;
+				}
+				push(lGraph[i + 1], matched_B[node - partition]);
+			}
+			else
+			{
+				for(j = 0; j < (V - partition); j++)
+					if(adj[node][partition + j] and matched_B[j] != node and !visited[j])
+					{
+						if(!set)
+						{
+							lGraph[i + 1] = (q*)malloc(sizeof(q));
+							lGraph[i + 1]->front = -1;
+							lGraph[i + 1]->rear = -1;
+							*qlen += 1;
+							set = true;
+						}
+						push(lGraph[i + 1], partition + j);
+						visited[j] = true;
+						
+						if(matched_B[j] == -1)
+							flag = false;
+					}
+					
+			}
+			size--;
+		}
+		i++;
+	}
+	
+	return !flag;
+}
+
+bool findPath(bool* visited, q** lGraph, int* matched_A, int* matched_B, int qlen, int V, int partition, int** adj, int* path, int* path_idx)
+{
+	S* stk = (S*)malloc(sizeof(S));
+	stk->top = -1;
+
+	int i, j;
+	for(i = 0; i <= lGraph[qlen - 1]->rear; i++)
+	{
+		int node = lGraph[qlen - 1]->arr[i];	
+		if(!visited[node] and matched_B[node - partition] == -1)
+		{
+			stk->arr[++stk->top] = node;
+			break;
+		}
+	}
+	
+	if(stk->top == -1)
+		return false;
+	
+	i = qlen - 1;
+	while(stk->top != -1)
+	{
+		int node = stk->arr[stk->top--];
+		
+		visited[node] = true;
+		path[*path_idx] = node;
+		*path_idx += 1;	
+		
+		if(i == 0)
+			break;	
+		
+		for(j = 0; j <= lGraph[i - 1]->rear; j++)
+		{
+			int prev = lGraph[i - 1]->arr[j];
+			if((qlen - i)%2)
+			{
+				if(adj[node][prev] and matched_A[prev] != node and !visited[prev])
+				{
+					stk->arr[++stk->top] = prev;
+					i--;
+					break;
+				}
+			}
+			else
+			{
+				if(!visited[matched_A[node]])
+				{
+					stk->arr[++stk->top] = matched_A[node];
+					i--;
+				}
+				break;
+			}
+		}
+	}
+
+	return i == 0;
+}
+
+int* hopcroftKarp(int** adj, int V, int partition)
+{
+	int* matched_A = (int*)malloc(sizeof(int) * partition);
+	memset(matched_A, -1, sizeof(int) * partition);
+	
+	int* matched_B = (int*)malloc(sizeof(int) * (V - partition));
+	memset(matched_B, -1, sizeof(int) * (V - partition));
+	
+	q** lGraph = (q**)malloc(sizeof(q*) * V);
+	int qlen = 0;
+
+	while(createLevelGraph(lGraph, adj, matched_A, matched_B, partition, V, &qlen))
+	{
+		bool* visited = (bool*)malloc(sizeof(bool) * V);
+		memset(visited, false, sizeof(bool) * V);
+		
+		int* path = (int*)malloc(sizeof(int) * V);
+		int path_idx = 0;
+		
+		while(findPath(visited, lGraph, matched_A, matched_B, qlen, V, partition, adj, path, &path_idx))
+		{
+			augmentMatching(matched_A, matched_B, path, path_idx, partition);
+			path_idx = 0;
+		}
+		qlen = 0;
+	}
+	
+	return matched_A;
+}
+
 int main()
 {
-	//
+	int V = 12;
+	int adj[N][N] = {{0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0},
+					 {0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0},
+					 {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
+					 {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
+					 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+					 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+					 {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},					 
+					 {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+					 {1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+					 {0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+					 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+					 {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0}};
+	int** adj_ = a2dp(adj, V);
+	hopcroftKarp(adj_, V, 6);
 }
