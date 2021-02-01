@@ -62,7 +62,11 @@
 	62. dinic - Find the maximum flow using Dinic's algorithm
 	63. findNext - Find the next node with an excess flow (if there exists one) :: utility
 	64. pushRelabel - Find the maximum flow with the Push-Relabel algorithm
-	65. main - Main!!
+	65. augmentMatching - Augment the current matching with the augmenting path provided in Hopcroft Karp's algorithm:: utility
+	66. createLevelGraph - Create an alternating Breadth-First-Search tree :: utility
+	67. findPath - find an augmenting path from the BFS tree :: utility
+	68. hopcroftKarp - Hopcroft Karp's algorithm for MCBM
+	69. main - Main!!
 **********/
 
 #include "stdio.h"
