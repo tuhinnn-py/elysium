@@ -65,8 +65,10 @@
 	65. augmentMatching - Augment the current matching with the augmenting path provided in Hopcroft Karp's algorithm:: utility
 	66. createLevelGraph - Create an alternating Breadth-First-Search tree :: utility
 	67. findPath - find an augmenting path from the BFS tree :: utility
-	68. hopcroftKarp - Hopcroft Karp's algorithm for MCBM
-	69. main - Main!!
+	68. hopcroftKarp - Return a maximum matching of a given bipartite graph
+	69. comparator - comparator function for comparing two nodes in descending order according to it's degrees :: utility
+	70. welshPowell - Return the chromatic number of an undirected graph given the graph in the form of an adjacency matrix
+	71. main - Main!!
 **********/
 
 #include "stdio.h"
@@ -1655,7 +1657,294 @@ int* hopcroftKarp(int** adj, int V, int partition)
 	return matched_A;
 }
 
+struct degree_node{
+	int degree;
+	int idx;
+};
+typedef struct degree_node didx;
+
+int comparator(const void* a, const void* b)
+{
+	didx** x = (didx**)a;
+	didx** y = (didx**)b;
+	
+	return (*y)->degree - (*x)->degree;
+}
+
+int welshPowell(int** adj, int V)
+{
+	int i, j, k, colors = 0;
+	didx** nodes = (didx**)malloc(sizeof(didx*) * V);
+	
+	for(i = 0; i < V; i++)
+	{
+		int degree_count = 0;
+		for(j = 0; j < V; j++)
+			if(adj[i][j])
+				degree_count++;
+		
+		nodes[i] = (didx*)malloc(sizeof(didx));		
+		nodes[i]->degree = degree_count;
+		nodes[i]->idx = i;
+	}
+	
+	qsort(nodes, V, sizeof(didx*), comparator);
+
+	int* colored = (int*)malloc(sizeof(int) * V);
+	memset(colored, -1, sizeof(int) * V);
+	
+	q* cache = (q*)malloc(sizeof(q));
+	cache->front = -1;
+	cache->rear = -1;
+	
+	for(i = 0; i < V; i++)
+	{
+		int node = nodes[i]->idx;
+		if(colored[node] == -1)
+		{
+			colored[node] = colors;
+			cache->front = -1;
+			cache->rear = -1;
+			push(cache, node);
+			
+			for(j = i + 1; j < V; j++)
+			{
+				int node_to_be_colored = nodes[j]->idx;
+				if(colored[node_to_be_colored] == -1)
+				{
+					int size = cache->rear + 1;
+					bool canColor = true;
+					
+					for(k = 0; k < size; k++)
+					{
+						if(adj[node_to_be_colored][cache->arr[k]])
+						{
+							canColor = false;
+							break;
+						}
+					}
+					
+					if(canColor)
+					{
+						colored[node_to_be_colored] = colors;
+						push(cache, node_to_be_colored);
+					}
+				}
+			}
+			colors ++;
+		}
+	}
+	return colors;
+}
+
+struct trie_node{
+	struct trie_node* chr[26];
+	
+	bool is_end;
+	char* word_formed;
+	
+	struct trie_node* failure_link;
+	struct trie_node* dictionary_link;
+};
+typedef struct trie_node trie;
+
+trie* getTrieNode()
+{
+	trie* tnode = (trie*)malloc(sizeof(trie));
+	tnode->dictionary_link = none;
+	
+	tnode->failure_link = none;
+	tnode->is_end = false;
+	
+	tnode->word_formed = "";
+	memset(tnode->chr, (int)none, sizeof(tnode->chr));
+	return tnode;
+}
+
+void setFailureLink(trie* tnode, trie* fl)
+{
+	tnode->failure_link = fl;
+}
+
+void setDictionaryLink(trie* tnode, trie* dl)
+{
+	tnode->dictionary_link = dl;
+}
+
+void setEnd(trie* tnode)
+{
+	tnode->is_end = true;
+}
+
+void setWord(trie* tnode, char* str)
+{
+	tnode->word_formed = str;
+}
+
+bool hasLink(trie* tnode, int pos)
+{
+	return tnode->chr[pos] != none;
+}
+
+char* substr(char* src, int i, int j)
+{
+	int counter = 0;
+	char* dest = (char*)malloc(sizeof(char) * (j - i + 1));
+	while(i < j and i <= strlen(src) - 1)
+	{
+		dest[counter++] = *(src + i);
+		i++;	
+	}
+	
+	dest[counter] = '\0';
+	return dest;
+}
+
+void addVocab(trie* tnode, char* vocab)
+{
+	int i;
+	trie* node = tnode;
+	
+	for(i = 0; i < strlen(vocab); i++)
+	{
+		if(!hasLink(node, vocab[i] - 'a'))
+		{
+			trie* new_node = getTrieNode();
+			setWord(new_node, substr(vocab, 0, i + 1));
+			
+			node->chr[vocab[i] - 'a'] = new_node;
+			node = new_node;
+		}
+		else
+			node = node->chr[vocab[i] - 'a'];
+	}
+	setEnd(node);
+}
+
+trie* getWord(trie* root, char* word)
+{
+	int i;
+	trie* node = root;
+	
+	for(i = 0; i < strlen(word); i++)
+	{
+		if(hasLink(node, word[i] - 'a'))
+			node = node->chr[word[i] - 'a'];
+		else
+			return none;
+	}
+	
+	return node;
+}
+
+bool hasWord(trie* root, char* word)
+{
+	trie* node = getWord(root, word);
+	return !(node == none) and node->is_end;
+}
+
+void addFailureLinks(trie* node, trie* root)
+{
+	int i;
+	if(node == root)
+		setFailureLink(node, root);
+		
+	for(i = 1; i <= strlen(node->word_formed); i++)
+	{
+		trie* fl = getWord(root, substr(node->word_formed, i, strlen(node->word_formed)));
+		if(!(fl == none))
+		{
+			setFailureLink(node, fl);
+			break;
+		}
+	}
+	
+	for(i = 0; i < 26; i++)
+		if(hasLink(node, i))
+			addFailureLinks(node->chr[i], root);
+}
+
+void addDictionaryLinks(trie* node, trie* root)
+{
+	trie* temp = node;
+	int i;
+	
+	while(temp->failure_link != root)
+	{
+		temp = temp->failure_link;
+		if(temp->is_end)
+		{
+			setDictionaryLink(node, temp);
+			break;
+		}
+	}
+	
+	for(i = 0; i < 26; i++)
+		if(hasLink(node, i))
+			addDictionaryLinks(node->chr[i], root);
+}
+
+trie* create_trie_aho_corasick(char** vocabulary, int vocab_size)
+{
+	trie* root = getTrieNode();
+	int i;
+	
+	for(i = 0; i < vocab_size; i++)
+		addVocab(root, vocabulary[i]);
+		
+	addFailureLinks(root, root);
+	addDictionaryLinks(root, root);
+	
+	return root;
+}
+
+int getHashCode(char* str, int hashLength)
+{
+	int i;
+	int hash_code = 0;
+	
+	for(i = 0; i < strlen(str); i++)
+		hash_code += 1 << (str[i] - 'a');
+		
+	return hash_code % hashLength;
+}
+
+int* search_for_words(trie* root, char* search_word, char** vocabulary, int V)
+{
+	int i;
+	const int HASH_LENGTH = 2098;
+	
+	int* res = (int*)malloc(sizeof(int) * HASH_LENGTH);
+	memset(res, 0, sizeof(int) * HASH_LENGTH);
+	
+	for(i = 0; i < strlen(search_word); i++)
+	{
+		if(hasLink(root, search_word[i] - 'a'))
+			root = root->chr[search_word[i] - 'a'];
+		else
+		{
+			while(root != root->failure_link and !hasLink(root, search_word[i] - 'a'))
+				root = root->failure_link;
+			
+			if(hasLink(root, search_word[i] - 'a'))
+				root = root->chr[search_word[i] - 'a'];
+			else
+				continue;
+		}
+		
+		if(root->is_end)
+			res[getHashCode(root->word_formed, HASH_LENGTH)]++;
+		if(!(root->dictionary_link == none))
+			res[getHashCode(root->dictionary_link->word_formed, HASH_LENGTH)]++;
+	}
+	
+//	for(i = 0; i < V; i++)
+//		printf("%s - %d\n", vocabulary[i], res[getHashCode(vocabulary[i], HASH_LENGTH)]);
+
+	return res;
+}
+
 int main()
 {
-	//main!!
+	//main()!!
 }
