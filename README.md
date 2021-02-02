@@ -4,20 +4,25 @@
 	* ##### Kahn's algorithm for topologically sorting a graph
 	* ##### Using a Depth First Search for topologically sorting a graph
 	---
+* #### String Searching Algorithms
+	* ##### Trie Aho-Corasick Automaton used by the fgrep command of UNIX
+	---
 * #### Graph Algorithms
+	* ##### Johnson's Algorithm 
+	* ##### Kosaraju's Algorithm for finding Strongly Connected Components in a graph
+	* ##### Tarjan's Algorithm for finding Strongly Connected Components in a graph
+	* ##### Welsh-Powell Algorithm for Graph Coloring
 	* ##### Dijkstra's Algorithm using a binary heap
 	* ##### Dijkstra's Algorithm using linear search
 	* ##### Bellman Ford's Routing Algorithm 
 	* ##### Floyd Warshall's Algorithm 
-	* ##### Johnson's Algorithm 
-	* ##### Kosaraju's Algorithm for finding Strongly Connected Components in a graph
-	* ##### Tarjan's Algorithm for finding Strongly Connected Components in a graph
 	---
 * #### Data Structures
 	* ##### Sparse Table for calculating range queries
 	* ##### Union Find (popularly used in Minimum Spanning Tree algorithms)
 	* ##### Fenwick(Binary Indexed) Trees for range queries
 	* ##### Segment Trees for range queries
+	* ##### Trie 
 	---
 * #### Tree Algorithms
 	* #### Lowest Common Ancestor Algorithms
