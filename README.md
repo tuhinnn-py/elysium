@@ -6,6 +6,8 @@
 	---
 * #### String Searching Algorithms
 	* ##### Trie Aho-Corasick Automaton used by the fgrep command of UNIX
+	* ##### Z-algorithm for linear pattern matching
+	* ##### Knutt-Morris-Pratt algorithm for linear pattern matching
 	---
 * #### Graph Algorithms
 	* ##### Johnson's Algorithm 
