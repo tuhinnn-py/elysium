@@ -68,7 +68,25 @@
 	68. hopcroftKarp - Return a maximum matching of a given bipartite graph
 	69. comparator - comparator function for comparing two nodes in descending order according to it's degrees :: utility
 	70. welshPowell - Return the chromatic number of an undirected graph given the graph in the form of an adjacency matrix
-	71. main - Main!!
+	71. getTrieNode - Initialise and return a trie node : utility
+	72. setFailureLink - Initialise the failure link of a trie node with the given link :: utility
+	73. setDictionaryLink - Initialise the dictionary link of a trie node with the given link :: utility
+	74. setEnd - Initialise the is_end flag of a trie node to decalre it as a vocabulary word:: utility
+	75. setWord - Initialise the vocab word of a trie node whose is_end flag is true:: utility
+	76. hasLink - Returns if a given trie node has a child at a particular position :: utility
+	77. substr - Implements the substring function of C++ :: utility
+	78. addVocab - Adds the given vocabulary word to the trie tree :: utility
+	79. getWord - Returns the node containing the end character of the given word if it exists and null if it doesn't :: utility
+	80. hasWord - Checks if the trie has the given word :: utility
+	81. addFailureLinks - Adds failure links to the given trie tree :: utility
+	82. addDictionaryLinks - Adds dictionary links to the given trie tree :: utility
+	83. create_trie_aho_corasick - Creates the AHO - CORASICK automaton 
+	84. getHashCode - Returns the hash value of a string :: utility
+	85.search_for_words - Searches the AHO - CORASICK automaton for the occurance of vocabulary words
+	86. knuth_morris_pratt - Returns the indices of the text string where the pattern is found using the Knutt-Morris-Pratt algorithm
+	87. calculate_z_value - Returns an array containing z-values of a string 
+	88. z_algorithm - Returns the indices of the text string where the pattern is found using the Z-algorithm
+	89. main - Main!!
 **********/
 
 #include "stdio.h"
@@ -1942,6 +1960,138 @@ int* search_for_words(trie* root, char* search_word, char** vocabulary, int V)
 //		printf("%s - %d\n", vocabulary[i], res[getHashCode(vocabulary[i], HASH_LENGTH)]);
 
 	return res;
+}
+
+bool* knuth_morris_pratt(char* str, char* pattern)
+{
+	int* pre_suff = (int*)malloc(sizeof(int) * strlen(pattern));
+	memset(pre_suff, 0, sizeof(int) * strlen(pattern));
+	
+	int i = 0, j = 1;
+	while(j < strlen(pattern))
+	{
+		if(pattern[i] == pattern[j])
+		{
+			pre_suff[j] = i + 1;
+			i++;
+			j++;
+		}
+		else
+		{
+			while(i != 0 and pattern[i] != pattern[j])
+				i = pre_suff[i - 1];
+			if(i == 0 and pattern[i] != pattern[j])
+				pre_suff[j] = 0;
+			else
+			{
+				pre_suff[j] = i + 1;
+				i++;
+			}
+			j++;
+		}
+	}
+	
+	bool* occurance = (bool*)malloc(sizeof(bool) * strlen(str));
+	memset(occurance, false, sizeof(bool) * strlen(str));
+	
+	i = 0, j = 0;
+	while(i < strlen(str))
+	{
+		while(j < strlen(pattern) and str[i] == pattern[j])
+		{
+			i++;
+			j++;
+		}
+		
+		if(j == strlen(pattern))
+		{
+			occurance[i - j] = true;
+			j = pre_suff[j - 1];
+		}
+		
+		else if(i < strlen(str) and str[i] != pattern[j])
+		{
+			if(j != 0)
+				j = pre_suff[j - 1];
+			else
+				i++;
+		}
+	}
+
+	return occurance;
+}
+
+int* calculate_z_value(char* str)
+{
+	int l = 1, r;
+	int i = 1;
+	
+	int* z_values = (int*)malloc(sizeof(int) * strlen(str));
+	z_values[0] = strlen(str);
+	while(str[i] == str[0])
+		i++;
+	z_values[1] = i - 1;
+	r = i - 1;
+	
+	for(i = 2; i < strlen(str); i++)
+	{
+		if(i > r)
+		{
+			int j = i, k = 0;
+			while(str[k] == str[j])
+			{
+				j++;
+				k++;
+			}
+			z_values[i] = k;
+			if(k > r)
+			{
+				r = k;
+				l = i;
+			}
+		}
+		else
+		{
+			int k = i - l;
+			int beta = r - i + 1;
+			if(z_values[k] < beta)
+				z_values[i] = z_values[k];
+			else if(z_values[k] > beta)
+				z_values[i] = beta;
+			else
+			{
+				z_values[i] = beta;
+				k = r + 1;
+				while(str[beta] == str[k])
+				{
+					beta++;
+					k++;
+					z_values[i]++;
+				}
+			}	
+		}
+	}
+	
+	return z_values;
+}
+
+bool* z_algorithm(char* str ,char* pattern)
+{
+	const char* seperator = "$";
+	int i, pattern_length = strlen(pattern);
+	
+	strcat(pattern, seperator);
+	strcat(pattern, str);
+	
+	int* z_values = calculate_z_value(pattern);
+	bool* occurance = (bool*)malloc(sizeof(bool) * strlen(str));
+	memset(occurance, false, sizeof(bool) * strlen(str));
+	
+	for(i = 0; i < strlen(str); i++)
+		if(z_values[pattern_length + i + 1] == pattern_length)
+			occurance[i] = true;
+		
+	return occurance;
 }
 
 int main()
