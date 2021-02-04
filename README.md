@@ -1,13 +1,16 @@
 ## C :: A handbook of Algorithms and Data Structures
 ---
-* #### Topological Sort algorithms
-	* ##### Kahn's algorithm for topologically sorting a graph
-	* ##### Using a Depth First Search for topologically sorting a graph
+* #### Assignment Algorithms for Weighted Maximum Cardinality Bipartite Matching
+	* ##### Hungarian Algorithm using the Hopcroft-Karp Algorithm as a subroutine for the Munkres Assignment Problem
 	---
 * #### String Searching Algorithms
 	* ##### Trie Aho-Corasick Automaton used by the fgrep command of UNIX
 	* ##### Z-algorithm for linear pattern matching
 	* ##### Knutt-Morris-Pratt algorithm for linear pattern matching
+	---
+* #### Topological Sort algorithms
+	* ##### Kahn's algorithm for topologically sorting a graph
+	* ##### Using a Depth First Search for topologically sorting a graph
 	---
 * #### Graph Algorithms
 	* ##### Johnson's Algorithm 
