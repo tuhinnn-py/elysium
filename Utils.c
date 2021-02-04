@@ -2094,6 +2094,166 @@ bool* z_algorithm(char* str ,char* pattern)
 	return occurance;
 }
 
+int** transform_matrix(int** matrix, int V)
+{
+	int i, j;
+	int** new_matrix = (int**)malloc(sizeof(int*) * V);
+	for(i = 0; i < V; i++)
+		new_matrix[i] = (int*)malloc(sizeof(int) * V);
+		
+	for(i = 0; i < V; i++)
+		for(j = 0; j < V; j++)
+			new_matrix[i][j] = matrix[i][j];
+			
+	int min_num;
+	for(i = 0; i < V; i++)
+	{
+		min_num = INF;
+		for(j = 0; j < V; j++)
+		{
+			min_num = min(min_num, new_matrix[i][j]);
+			if(min_num == 0)
+				break;
+		}
+		
+		if(min_num != 0)
+			for(j = 0; j < V; j++)
+				new_matrix[i][j] -= min_num;
+	}
+	
+	for(i = 0; i < V; i++)
+	{
+		min_num = INF;
+		for(j = 0; j < V; j++)
+		{
+			min_num = min(min_num, new_matrix[j][i]);
+			if(min_num == 0)
+				break;
+		}
+		
+		if(min_num != 0)
+			for(j = 0; j < V; j++)
+				new_matrix[j][i] -= min_num;
+	}	
+	
+	return new_matrix;	
+}
+
+int calculate_lines(int** line_matrix, int** matrix, int V)
+{
+	int number_of_lines = 0;
+	int i, j, number_of_zeros = 0;
+	
+	int* rows = (int*)malloc(sizeof(int) * V);
+	memset(rows, 0, sizeof(int) * V);
+	
+	int* cols = (int*)malloc(sizeof(int) * V);
+	memset(cols, 0, sizeof(int) * V);
+	
+	for(i = 0; i < V; i++)
+		for(j = 0; j < V; j++)
+			if(matrix[i][j] == 0)
+			{
+				rows[i]++;
+				cols[j]++;
+				number_of_zeros++;
+			}
+	
+	while(number_of_zeros > 0)
+	{
+		int max_row_idx, max_col_idx;
+		int max_row = -INF, max_col = -INF;
+		
+		for(i = 0; i < V; i++)
+			if(max_row < rows[i])
+			{
+				max_row = rows[i];
+				max_row_idx = i;
+			}
+		
+		for(i = 0; i < V; i++)
+			if(max_col < cols[i])
+			{
+				max_col = cols[i];
+				max_col_idx = i;
+			}
+		
+		if(max_row > max_col)
+		{
+			number_of_zeros -= rows[max_row_idx];
+			rows[max_row_idx] = 0;
+			for(i = 0; i < V; i++)
+			{
+				line_matrix[max_row_idx][i] += 1;
+				if(matrix[max_row_idx][i] == 0)
+					cols[i] -= 1;
+			}
+		}
+		else
+		{
+			number_of_zeros -= cols[max_col_idx];
+			cols[max_col_idx] = 0;
+			for(i = 0; i < V; i++)
+			{
+				line_matrix[i][max_col_idx] += 1;
+				if(matrix[i][max_col_idx] == 0)
+					rows[i] -= 1;
+			}
+		}
+		number_of_lines += 1;
+	}
+	return number_of_lines; 
+}
+
+int hungarian(int** adj, int V)
+{
+	int i, j;
+	int res = 0;
+	
+	int** transformed_matrix = transform_matrix(adj, V);
+	int** line_matrix = (int**)malloc(sizeof(int*) * V);
+	for(i = 0; i < V; i++)
+		line_matrix[i] = (int*)malloc(sizeof(int) * V);
+	fillArray(line_matrix, V, V, 0);
+	
+	while(calculate_lines(line_matrix, transformed_matrix, V) != V)
+	{
+		int min_number = INF;
+		for(i = 0; i < V; i++)
+			for(j = 0; j < V; j++)
+				if(!line_matrix[i][j] and min_number > transformed_matrix[i][j])
+					min_number = transformed_matrix[i][j];
+		for(i = 0; i < V; i++)
+			for(j = 0; j < V; j++)
+			{
+				if(!line_matrix[i][j])
+					transformed_matrix[i][j] -= min_number;
+				if(line_matrix[i][j] == 2)
+					transformed_matrix[i][j] += min_number;
+			}
+			
+		fillArray(line_matrix, V, V, 0);
+	}
+	
+	int** bGraph = (int**)malloc(sizeof(int*) * (2 * V));
+	for(i = 0; i < 2 * V; i++)
+		bGraph[i] = (int*)malloc(sizeof(int) * (2 * V));
+	fillArray(bGraph, 2 * V, 2 * V, 0);
+	
+	for(i = 0; i < V; i++)
+		for(j = 0; j < V; j++)
+			if(!transformed_matrix[i][j])
+			{
+				bGraph[i][V + j] = 1;
+				bGraph[V + j][i] = 1;
+			}
+
+	int* allocations = hopcroftKarp(bGraph, 2 * V, V);
+	for(i = 0; i < V; i++)
+		res += adj[i][allocations[i] - V];
+	return res;
+}
+
 int main()
 {
 	//main()!!
