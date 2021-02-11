@@ -934,6 +934,12 @@ S* find(int* unionFind, int a)
 	stk->arr[++stk->top] = a;
 	int tmpr = unionFind[a];
 	
+        if(unionFind[tmpr] == tmpr)
+        {
+                stk->arr[++stk->top] = tmpr;
+                return stk;
+        }
+  
 	while(unionFind[tmpr] != tmpr)
 	{
 		stk->arr[++stk->top] = tmpr;
@@ -2068,6 +2074,8 @@ int* calculate_z_value(char* str)
 					k++;
 					z_values[i]++;
 				}
+                                l = i;
+                                r = k - 1;
 			}	
 		}
 	}
