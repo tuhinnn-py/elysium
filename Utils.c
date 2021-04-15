@@ -1958,8 +1958,11 @@ int* search_for_words(trie* root, char* search_word, char** vocabulary, int V)
 		
 		if(root->is_end)
 			res[getHashCode(root->word_formed, HASH_LENGTH)]++;
-		if(!(root->dictionary_link == none))
-			res[getHashCode(root->dictionary_link->word_formed, HASH_LENGTH)]++;
+		
+		trie* dict_link = root->dictionary_link;
+		if(!(dict_link == none))
+			res[getHashCode(dict_link->word_formed, HASH_LENGTH)]++;
+			dict_link = dict_link->dictionary_link;
 	}
 	
 //	for(i = 0; i < V; i++)
