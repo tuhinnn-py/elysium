@@ -2053,9 +2053,9 @@ int* calculate_z_value(char* str)
 				k++;
 			}
 			z_values[i] = k;
-			if(k > r)
+			if(r < j - 1)
 			{
-				r = k;
+				r = j - 1;
 				l = i;
 			}
 		}
